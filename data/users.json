@@ -1,0 +1,14 @@
+[
+  {
+    "name": "Demo",
+    "email": "demo@example.com",
+    "phone": "12345",
+    "channels": ["email", "sms"]
+  },
+  {
+    "name": "Test",
+    "email": "test@example.com",
+    "phone": "67890",
+    "channels": ["sms", "in_app"]
+  }
+]

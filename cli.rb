@@ -1,44 +1,71 @@
 # frozen_string_literal: true
 
-require_relative 'notification_system'
+base_dir = __dir__ || '.' # Sorbet be quiet please
+$LOAD_PATH.unshift(File.expand_path('lib', base_dir))
+require 'simply_notify'
+require 'json'
 
-def show_channels(user)
-  puts "User ##{user.id} channels: #{user.channels.map(&:to_s).join(', ')}"
+module SimplyNotifyDemo
+  BASE_DIR = __dir__
+  USERS_FILE = File.expand_path('data/users.json', BASE_DIR)
+
+  def self.run
+    users = load_users_from_json
+    service = SimplyNotify::NotificationService.new
+
+    send_initial_notifications(service, users)
+    print_delivery_log(service)
+
+    manage_subscriptions(users.first)
+    send_followup_notification(service, users.first)
+    print_delivery_log(service)
+  end
+
+  def self.load_users_from_json
+    data = JSON.parse(File.read(USERS_FILE))
+    data.map do |user_hash|
+      SimplyNotify::User.new(
+        name: user_hash['name'],
+        email: user_hash['email'],
+        phone: user_hash['phone'],
+        channels: user_hash['channels'].map(&:to_sym)
+      )
+    end
+  end
+
+  def self.send_initial_notifications(service, users)
+    puts '== Sending notifications =='
+    users.each do |user|
+      service.notify(user, "Welcome #{user.name}!")
+    end
+  end
+
+  def self.send_followup_notification(service, user)
+    puts "\n== Sending notifications after subscription changes =="
+    service.notify(user, "Update for #{user.name} after subscription change!")
+  end
+
+  def self.print_delivery_log(service)
+    puts "\n== Delivery log =="
+    service.log.all.each do |entry|
+      puts "#{entry.channel} to user##{entry.user_id} - #{entry.status}: #{entry.message}"
+    end
+  end
+
+  def self.manage_subscriptions(user)
+    puts "\n== Managing subscriptions =="
+    show_channels(user)
+    user.unsubscribe(:sms)
+    puts "#{user.name} unsubscribed from :sms"
+    show_channels(user)
+    user.subscribe(:in_app)
+    puts "#{user.name} subscribed to :in_app"
+    show_channels(user)
+  end
+
+  def self.show_channels(user)
+    puts "User ##{user.id} channels: #{user.channels.map(&:to_s).join(', ')}"
+  end
 end
 
-
-alice = User.new(name: 'Alice', email: 'alice@example.com', phone: '12345', channels: [:email, :sms])
-
-
-
-service = NotificationService.new
-
-
-puts '== Sending notifications =='
-service.notify(alice, 'Welcome Alice!')
-service.notify(bob, 'Welcome Bob!')
-
-
-puts "\n== Delivery log =="
-service.log.all.each do |entry|
-  puts "#{entry.channel} to user##{entry.user_id} - #{entry.status}: #{entry.message}"
-end
-
-
-puts "\n== Managing subscriptions =="
-show_channels(alice)
-alice.unsubscribe(:sms)
-puts 'Alice unsubscribed from :sms'
-show_channels(alice)
-alice.subscribe(:in_app)
-puts 'Alice subscribed to :in_app'
-show_channels(alice)
-
-puts "\n== Sending notifications after subscription changes =="
-service.notify(alice, 'Update for Alice after subscription change!')
-
-
-puts "\n== Final delivery log =="
-service.log.all.each do |entry|
-  puts "#{entry.channel} to user##{entry.user_id} - #{entry.status}: #{entry.message}"
-end
+SimplyNotifyDemo.run
