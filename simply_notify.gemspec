@@ -6,5 +6,6 @@ Gem::Specification.new do |spec|
   spec.email         = ['hello@wyodeb.io']
   spec.files         = Dir['lib/**/*.rb']
   spec.require_paths = ['lib']
-  spec.license       = 'MIT'
+  spec.add_development_dependency 'minitest', '~> 5.0'
+  spec.license = 'MIT'
 end
