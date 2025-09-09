@@ -16,7 +16,7 @@ Users can subscribe/unsubscribe from channels, notifications are logged, and the
 - **UUID users**: `User#id` defaults to a UUID, or can be overridden
 - **Demo CLI**: Load users from JSON, simulate notifications
 - **Minitest suite**: Full coverage of User, Channels, and Service
-- **Clean architecture**: Channel registry (DI), separation of concerns
+
 
 ---
 
