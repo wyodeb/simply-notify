@@ -29,4 +29,17 @@ class ChannelTest < Minitest::Test
     result = chan.deliver(@user, 'Hello!')
     assert_match(/In-app notification to Test User: Hello!/, result)
   end
+
+  def test_channels_include_notification_channel_module
+    [SimplyNotify::EmailChannel, SimplyNotify::SmsChannel, SimplyNotify::InAppChannel].each do |klass|
+      assert_includes klass.included_modules, SimplyNotify::NotificationChannel
+    end
+  end
+
+  def test_channels_respond_to_deliver
+    [SimplyNotify::EmailChannel, SimplyNotify::SmsChannel, SimplyNotify::InAppChannel].each do |klass|
+      chan = klass.new
+      assert_respond_to chan, :deliver
+    end
+  end
 end
