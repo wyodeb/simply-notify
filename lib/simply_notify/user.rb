@@ -1,29 +1,27 @@
 # frozen_string_literal: true
 
+require 'securerandom'
+
 module SimplyNotify
   class User
     attr_reader :id, :name, :email, :phone
     attr_accessor :channels
 
-    @@id_counter = 1
-
-    def initialize(name:, email:, phone:, channels: [])
-      @id = @@id_counter
-      @@id_counter += 1
+    def initialize(name:, email:, phone:, channels: [], id: SecureRandom.uuid)
+      @id = id
       @name = name
       @email = email
       @phone = phone
-      @channels = channels.map(&:to_sym)
+      @channels = channels.map(&:to_sym).uniq
     end
 
     def subscribe(channel)
-      channel = channel.to_sym
-      @channels << channel unless @channels.include?(channel)
+      c = channel.to_sym
+      @channels << c unless @channels.include?(c)
     end
 
     def unsubscribe(channel)
-      channel = channel.to_sym
-      @channels.delete(channel)
+      @channels.delete(channel.to_sym)
     end
   end
 end
