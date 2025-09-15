@@ -59,4 +59,38 @@ class NotificationServiceTest < Minitest::Test
     svc = SimplyNotify::NotificationService.new(registry: reg)
     assert_equal [:foo], svc.keys
   end
+
+  # Filters: only / except
+  def test_notify_with_only_filters_down_to_requested_channels
+    results = @service.notify(@user, 'Only SMS', only: :sms)
+    assert_equal [:sms], results.map(&:channel)
+    assert(results.all?(&:ok))
+
+    log = @service.log.all.last(1)
+    assert_equal :sms, log.first.channel
+    assert_equal :success, log.first.status
+  end
+
+  def test_notify_with_except_removes_requested_channels
+    results = @service.notify(@user, 'Skip email', except: :email)
+    assert_equal [:sms], results.map(&:channel)
+    assert(results.all?(&:ok))
+
+    log = @service.log.all.last(1)
+    assert_equal :sms, log.first.channel
+    assert_equal :success, log.first.status
+  end
+
+  def test_notify_with_only_and_except_conflict_prefers_except
+    results = @service.notify(@user, 'Conflict', only: [:email, :sms], except: :sms)
+    assert_equal [:email], results.map(&:channel)
+  end
+
+  def test_notify_normalizes_string_filters
+    results = @service.notify(@user, 'Strings ok', only: 'sms', except: nil)
+    assert_equal [:sms], results.map(&:channel)
+
+    results2 = @service.notify(@user, 'Strings ok 2', only: nil, except: ['email'])
+    assert_equal [:sms], results2.map(&:channel)
+  end
 end
