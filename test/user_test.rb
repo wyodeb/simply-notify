@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require_relative 'test_helper'
+require 'set'
 
 class UserTest < Minitest::Test
   def test_initial_channels
@@ -10,7 +11,7 @@ class UserTest < Minitest::Test
       phone: '12345',
       channels: %i[email sms]
     )
-    assert_equal %i[email sms], user.channels
+    assert_equal Set[:email, :sms], user.channels
   end
 
   def test_initial_channels_are_symbolized_and_deduped
@@ -20,7 +21,7 @@ class UserTest < Minitest::Test
       phone: '12345',
       channels: ['email', :email, 'sms']
     )
-    assert_equal %i[email sms], user.channels
+    assert_equal Set[:email, :sms], user.channels
   end
 
   def test_subscribe
@@ -33,25 +34,25 @@ class UserTest < Minitest::Test
     user = SimplyNotify::User.new(name: 'Test', email: 't@e', phone: '1', channels: [:email])
     user.subscribe('email')
     user.subscribe(:email)
-    assert_equal [:email], user.channels
+    assert_equal Set[:email], user.channels
   end
 
   def test_unsubscribe
     user = SimplyNotify::User.new(name: 'Test', email: 't@e', phone: '1', channels: %i[email sms])
     user.unsubscribe(:email)
     refute_includes user.channels, :email
-    assert_equal [:sms], user.channels
+    assert_equal Set[:sms], user.channels
   end
 
   def test_unsubscribe_nonexistent_is_noop
     user = SimplyNotify::User.new(name: 'Test', email: 't@e', phone: '1', channels: [:email])
-    user.unsubscribe(:sms) # should not raise or change existing channels
-    assert_equal [:email], user.channels
+    user.unsubscribe(:sms)
+    assert_equal Set[:email], user.channels
   end
 
   def test_id_is_uuid_by_default
     user = SimplyNotify::User.new(name: 'UUID', email: 'u@e', phone: '999')
-    assert_match(/\A[0-9a-f-]{36}\z/, user.id) # simple UUID format check
+    assert_match(/\A[0-9a-f-]{36}\z/, user.id)
   end
 
   def test_id_can_be_overridden
