@@ -47,4 +47,16 @@ class NotificationServiceTest < Minitest::Test
     assert_includes chans, :sms
     assert_includes chans, :in_app
   end
+
+  # Forwardable-specific checks
+  def test_keys_delegates_to_registry
+    assert_respond_to @service, :keys
+    assert_equal @service.available_channels, @service.keys
+  end
+
+  def test_keys_reflects_injected_registry
+    reg = SimplyNotify::ChannelRegistry.new(foo: Class.new)
+    svc = SimplyNotify::NotificationService.new(registry: reg)
+    assert_equal [:foo], svc.keys
+  end
 end
